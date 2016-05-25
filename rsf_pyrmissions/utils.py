@@ -4,6 +4,15 @@ from base64 import b64encode, b64decode
 from copy import copy
 
 
+def import_permissions_config(dump_string):
+	if not isinstance(dump_string, basestring):
+		raise TypeError((
+			"dump_string for loading a PermissionsConfiguration must be a string or a unicode"
+			" - '%s' detected"
+		) % type(dump_string))
+	else:
+		return pickle.loads(b64decode(dump_string))
+
 class PermissionsConfiguration():
 
 	def __init__(self, is_registration_required=False):
@@ -41,6 +50,9 @@ class PermissionsConfiguration():
 			privileges=self.__privileges,
 			options=self.__options,
 		))
+
+	def export(self):
+		return b64encode(pickle.dumps(self))
 
 	def current_privileges(self):
 		return copy(self.__privileges)
