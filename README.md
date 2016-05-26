@@ -15,7 +15,7 @@ We could (optionally) pass in a boolean `is_registration_required` argument in t
 
 However, for production purposes, it is highly recommended to set this value to `True`. We shall discuss its importance later.
 
-**Set privileges for roles and users**
+# Setting privileges for roles and users
 
 We will use random roles and users to assign privileges to them. Note that, there is nothing significant about what / how you call each role / user. It doesn't matter whether a role is called "superuser" or an "intern". The only thing that matters is which arbitrary string denoting a role has been assigned what kind of privileges for an arbitrary string of action. 
 
@@ -39,7 +39,7 @@ We will use random roles and users to assign privileges to them. Note that, ther
     
 It's all arbitrary - you're free to call your roles, users, actions whatever you want. All these privilege assignments and rules have been saved inside the `pc` object. 
 
-**Determining privileges of a role or a user for an action**
+# Determining privileges for a role or a user
     
     a_role = "user"
     a_user = "alice"
@@ -72,7 +72,7 @@ Each of these fields (`a_role`, `a_user`, `an_action`) are compulsory for determ
     an_action = "smash_an_apple" 
     pc.is_allowed(a_role, a_user, an_action) # False - because these roles/users were never assigned any privilegs on the first place
     
-**Fine-grain control with special conditions**
+# Fine-grain control with special conditions
 
 So far, Alice can remove any item she wants whether she is user or manager. Bob cannot remove any item. But if he queries his privilege as a Manager then he can remove any item because the Manager role is allowed to remove items. 
 
@@ -140,26 +140,23 @@ This helps in various cases where accounting / planning for newly introduced rol
 
 **Export**
 
-    an_exported_string = pc.export() # produces a long base64 encoded pickled string 
+    from rsf_pyrmissions.utils import dump_configuration
+    dump_string = dump_configuration(pc) # produces a long base64 encoded pickled string 
 
 This string represents the state of the `pc` object and can be easily stored in a regular database, file system etc for retrieving later.
 
 **Import**
 
-	from rsf_pyrmissions.utils import import_permissions_config
-	pc2 = import_permissions_config(an_exported_string)
+	from rsf_pyrmissions.utils import load_configuration
+	pc2 = load_configuration(dump_string)
 	
 This `pc2` object is now an exact replica of the original `pc` object that we first created. We can resume all assigning and querying operations on this new `pc2` object just like we were doing for the original `pc` object.
 
-# Other useful internal functions
+# A useful internal function
 
-    pc.current_privileges() 
+    pc.current_state() 
 
-returns a copy of the current privilege structure in a python dictionary format. Mutating this dictionary won't affect any privilege structure that is set inside the `pc` object.
-    
-    pc.dumps()
-
-returns a json string of a dictionary representation of all the fields and attributes inside the object
+returns a json string of a dictionary representation of all the fields and attributes inside the object. This maybe helpful to inspect and review what has been set inside currently.
     
 # Summary
 
