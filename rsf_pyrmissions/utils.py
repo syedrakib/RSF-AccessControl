@@ -4,15 +4,6 @@ from base64 import b64encode, b64decode
 from copy import copy
 
 
-def import_permissions_config(dump_string):
-	if not isinstance(dump_string, basestring):
-		raise TypeError((
-			"dump_string for loading a PermissionsConfiguration must be a string or a unicode"
-			" - '%s' detected"
-		) % type(dump_string))
-	else:
-		return pickle.loads(b64decode(dump_string))
-
 class PermissionsConfiguration():
 
 	def __init__(self, is_registration_required=False):
@@ -37,11 +28,11 @@ class PermissionsConfiguration():
 
 	###############################################################
 	###############################################################
-	# meta / status / options / self operations
+	# meta / status / options 
 	###############################################################
 	###############################################################
 
-	def dumps(self):
+	def current_state(self):
 		return json.dumps(dict(
 			roles=list(self.__roles),
 			actions=list(self.__actions),
@@ -50,12 +41,6 @@ class PermissionsConfiguration():
 			privileges=self.__privileges,
 			options=self.__options,
 		))
-
-	def export(self):
-		return b64encode(pickle.dumps(self))
-
-	def current_privileges(self):
-		return copy(self.__privileges)
 
 	def is_registration_required(self, is_registration_required=None):
 		if is_registration_required != None:
@@ -193,6 +178,23 @@ class PermissionsConfiguration():
 		return False
 
 
+def dump_configuration(permissions_configuration_obj):
+	if not isinstance(permissions_configuration_obj, PermissionsConfiguration):
+		raise TypeError((
+			"input '%s' for dumping must be an instance of PermissionsConfiguration"
+			" - '%s' detected"
+		) % (permissions_configuration_obj, type(permissions_configuration_obj)))
+	else:
+		return b64encode(pickle.dumps(permissions_configuration_obj))
+		
+def load_configuration(dump_string):
+	if not isinstance(dump_string, basestring):
+		raise TypeError((
+			"dump_string for loading a PermissionsConfiguration must be a string or a unicode"
+			" - '%s' detected"
+		) % type(dump_string))
+	else:
+		return pickle.loads(b64decode(dump_string))
 
 
 
