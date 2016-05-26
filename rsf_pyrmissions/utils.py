@@ -15,8 +15,8 @@ class PermissionsConfiguration():
 			) % (is_registration_required, type(is_registration_required)))
 		else:
 			self.__roles = set()
-			self.__actions = set()
 			self.__users = set()
+			self.__actions = set()
 			self.__conditions = set()
 			self.__privileges = dict(
 				for_users=dict(),
@@ -28,19 +28,50 @@ class PermissionsConfiguration():
 
 	###############################################################
 	###############################################################
-	# meta / status / options 
+	# dump and load 
 	###############################################################
 	###############################################################
 
-	def current_state(self):
+	def dumps(self):
 		return json.dumps(dict(
 			roles=list(self.__roles),
-			actions=list(self.__actions),
 			users=list(self.__users),
+			actions=list(self.__actions),
 			conditions=list(self.__conditions),
 			privileges=self.__privileges,
 			options=self.__options,
 		))
+
+	def loads(self, dump_string):
+		try:
+			dump_dict = json.loads(dump_string)
+		except ValueError as error:
+			error.args = ("Invalid JSON format of dump_string",)
+			raise
+		else:
+			# keep a backup of current state before starting to mangle the current state with __load()
+			backup_dump_dict = json.loads(self.dumps())
+			try:
+				self.__load(dump_dict)
+			except KeyError as error:
+				self.__load(backup_dump_dict)
+				raise
+
+	def __load(self, dump_dict):
+		self.__roles = set(dump_dict.pop("roles"))
+		self.__users = set(dump_dict.pop("users"))
+		self.__actions = set(dump_dict.pop("actions"))
+		self.__conditions = set(dump_dict.pop("conditions"))
+		self.__privileges = dump_dict.pop("privileges")
+		self.__options = dump_dict.pop("options")
+		if len(dump_dict) > 0:
+			raise KeyError("Unknown keys %s found in dump dictionary" % dump_dict.keys())
+
+	###############################################################
+	###############################################################
+	# registrations
+	###############################################################
+	###############################################################
 
 	def is_registration_required(self, is_registration_required=None):
 		if is_registration_required != None:
@@ -54,12 +85,6 @@ class PermissionsConfiguration():
 		else:
 			# return the current value
 			return self.__options['is_registration_required']
-
-	###############################################################
-	###############################################################
-	# setting permissions
-	###############################################################
-	###############################################################
 
 	def register_roles(self, *args):
 		for index, a_role in enumerate(args):
@@ -97,6 +122,12 @@ class PermissionsConfiguration():
 			else:
 				self.__conditions.add(a_condition)
 
+	###############################################################
+	###############################################################
+	# assigning privileges
+	###############################################################
+	###############################################################
+
 	def assign_privilege_for_a_role(self, a_role, an_action, is_allowed, a_condition=None):
 		self.__validate_parameters(
 			a_role=a_role, an_action=an_action, is_allowed=is_allowed, a_condition=a_condition
@@ -116,17 +147,6 @@ class PermissionsConfiguration():
 		self.__privileges['for_users'][a_user][an_action] = self.__calibrate_action_privileges(
 			self.__privileges['for_users'][a_user][an_action], is_allowed, a_condition, 
 		)
-
-	def __calibrate_action_privileges(self, action_privileges, is_allowed, a_condition):
-		action_privileges = copy(action_privileges)
-		if a_condition:
-			if type(action_privileges) == dict:
-				action_privileges[a_condition] = is_allowed
-			else:
-				action_privileges = {a_condition: is_allowed}
-		else:
-			action_privileges = is_allowed
-		return action_privileges
 
 	def __validate_parameters(self, 
 		a_role=None, a_user=None, an_action=None, 
@@ -150,9 +170,20 @@ class PermissionsConfiguration():
 				"Value for is_allowed while assigning a privilege must be a boolean - '%s' detected"
 			) % type(is_allowed))
 
+	def __calibrate_action_privileges(self, action_privileges, is_allowed, a_condition):
+		action_privileges = copy(action_privileges)
+		if a_condition:
+			if type(action_privileges) == dict:
+				action_privileges[a_condition] = is_allowed
+			else:
+				action_privileges = {a_condition: is_allowed}
+		else:
+			action_privileges = is_allowed
+		return action_privileges
+
 	###############################################################
 	###############################################################
-	# determining permissions
+	# determining privileges
 	###############################################################
 	###############################################################
 
@@ -176,25 +207,6 @@ class PermissionsConfiguration():
 					# role_privileges_for_action is a dictionary of conditions
 					return role_privileges_for_action.get(known_condition, False)
 		return False
-
-
-def dump_configuration(permissions_configuration_obj):
-	if not isinstance(permissions_configuration_obj, PermissionsConfiguration):
-		raise TypeError((
-			"input '%s' for dumping must be an instance of PermissionsConfiguration"
-			" - '%s' detected"
-		) % (permissions_configuration_obj, type(permissions_configuration_obj)))
-	else:
-		return b64encode(pickle.dumps(permissions_configuration_obj))
-		
-def load_configuration(dump_string):
-	if not isinstance(dump_string, basestring):
-		raise TypeError((
-			"dump_string for loading a PermissionsConfiguration must be a string or a unicode"
-			" - '%s' detected"
-		) % type(dump_string))
-	else:
-		return pickle.loads(b64decode(dump_string))
 
 
 
