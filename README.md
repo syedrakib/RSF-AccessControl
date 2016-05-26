@@ -136,27 +136,22 @@ Hence, later on if you try to assign a privilege with a mistyped parameter (or w
 
 This helps in various cases where accounting / planning for newly introduced roles, users, actions (before using them) is important. **It is recommended to enforce this requirement in production applications.**
 
-# Export / Import
+# Dumping & Loading (export/import)
 
-**Export**
+**Dumping**
 
-    from rsf_pyrmissions.utils import dump_configuration
-    dump_string = dump_configuration(pc) # produces a long base64 encoded pickled string 
+    dump_string = pc.dumps() # produces a json dump of the current config state of the object
 
-This string represents the state of the `pc` object and can be easily stored in a regular database, file system etc for retrieving later.
+This string represents the current state of the `pc` object and it can be easily stored in a regular database or a file system etc to be loaded from later on.
 
-**Import**
+**Loading**
 
-	from rsf_pyrmissions.utils import load_configuration
-	pc2 = load_configuration(dump_string)
+	pc2 = PermissionsConfiguration() # fresh new object 
+    pc2.loads(dump_string)
 	
 This `pc2` object is now an exact replica of the original `pc` object that we first created. We can resume all assigning and querying operations on this new `pc2` object just like we were doing for the original `pc` object.
 
-# A useful internal function
-
-    pc.current_state() 
-
-returns a json string of a dictionary representation of all the fields and attributes inside the object. This maybe helpful to inspect and review what has been set inside currently.
+***CAUTION with Loading!!!*** The `loads()` method will completely replace whatever config state was present in the config object before the `loads()` method was called. So use this method with caution.
     
 # Summary
 
