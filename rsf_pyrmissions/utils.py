@@ -6,7 +6,7 @@ from copy import copy
 
 class PermissionsConfiguration():
 
-	def __init__(self, is_registration_required=False):
+	def __init__(self, is_registration_required=True):
 		if type(is_registration_required) != bool:
 			raise TypeError((
 				"'is_registration_required' argument during instance creattion "
@@ -75,6 +75,7 @@ class PermissionsConfiguration():
 
 	def is_registration_required(self, is_registration_required=None):
 		if is_registration_required != None:
+			# set a boolean value
 			if type(is_registration_required) != bool:
 				raise TypeError((
 					"'is_registration_required' argument must be of boolean type"

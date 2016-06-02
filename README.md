@@ -9,11 +9,9 @@ Ridiculously Straight Forward Permissioning system (aka Access Control) for pyth
 **Import the package and create an object of `PermissionsConfiguration` class. We will call it `pc` for this documentation.**
     
     from rsf_pyrmissions.utils import PermissionsConfiguration
-    pc = PermissionsConfiguration()
+    pc = PermissionsConfiguration(is_registration_required=False)
 
-We could (optionally) pass in a boolean `is_registration_required` argument in this statement. However, for this quick demo purpose, we will keep it blank (which defaults to `False`) and, hence, remove such constraints for requiring registrations. 
-
-However, for production purposes, it is highly recommended to set this value to `True`. We shall discuss its importance later.
+In a production system, we should pass in a boolean `True` for the `is_registration_required` argument in this object instantiation statement. However, for this demo purpose, we will set it to `False` and, hence, avoid any requirements for registrations - we will discuss the importance of registrations a little later below.
 
 # Setting privileges for roles and users
 
@@ -108,6 +106,8 @@ In order to prevent such situations, you can (rather, **you should**) turn on th
     pc = PermissionsConfiguration(is_registration_required=True)
     # or simply
     pc = PermissionsConfiguration(True)
+    # or even simpler
+    pc = PermissionsConfiguration() # it defaults to True
 
 Or if you want to change this behavior later on
 
