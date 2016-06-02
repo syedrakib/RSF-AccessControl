@@ -142,7 +142,7 @@ class PermissionsConfiguration():
 	def __validate_parameters(self, 
 		a_role=None, a_user=None, an_action=None, is_allowed_or_condition=None
 	):
-		if self.__options['is_registration_required']:
+		if self.is_registration_required():
 			if a_role and (a_role not in list(self.__roles)):
 				raise LookupError("Role '%s' is not yet registered in this configuration" % a_role)
 
@@ -154,7 +154,7 @@ class PermissionsConfiguration():
 
 		if is_allowed_or_condition:
 			if type(is_allowed_or_condition) != bool:
-				if self.__options['is_registration_required']:
+				if self.is_registration_required():
 					if is_allowed_or_condition not in list(self.__conditions):
 						raise LookupError((
 							"Condition '%s' is not yet registered in this configuration"
