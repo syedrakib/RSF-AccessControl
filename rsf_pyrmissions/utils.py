@@ -125,22 +125,24 @@ class PermissionsConfiguration():
 	###############################################################
 	###############################################################
 
-	def assign_privilege_for_a_role(self, a_role, an_action, is_allowed_or_condition):
+	def assign_privilege_for_a_role(self, a_role, an_action, is_allowed_or_required_condition):
 		self.__validate_parameters(
-			a_role=a_role, an_action=an_action, is_allowed_or_condition=is_allowed_or_condition
+			a_role=a_role, an_action=an_action, 
+			is_allowed_or_required_condition=is_allowed_or_required_condition
 		)
 		self.__privileges['for_roles'].setdefault(a_role, dict())
-		self.__privileges['for_roles'][a_role][an_action] = is_allowed_or_condition
+		self.__privileges['for_roles'][a_role][an_action] = is_allowed_or_required_condition
 
-	def assign_privilege_for_a_user(self, a_user, an_action, is_allowed_or_condition):
+	def assign_privilege_for_a_user(self, a_user, an_action, is_allowed_or_required_condition):
 		self.__validate_parameters(
-			a_user=a_user, an_action=an_action, is_allowed_or_condition=is_allowed_or_condition
+			a_user=a_user, an_action=an_action, 
+			is_allowed_or_required_condition=is_allowed_or_required_condition
 		)
 		self.__privileges['for_users'].setdefault(a_user, dict())
-		self.__privileges['for_users'][a_user][an_action] = is_allowed_or_condition
+		self.__privileges['for_users'][a_user][an_action] = is_allowed_or_required_condition
 
 	def __validate_parameters(self, 
-		a_role=None, a_user=None, an_action=None, is_allowed_or_condition=None
+		a_role=None, a_user=None, an_action=None, is_allowed_or_required_condition=None
 	):
 		if self.is_registration_required():
 			if a_role and (a_role not in list(self.__roles)):
@@ -152,14 +154,15 @@ class PermissionsConfiguration():
 			if an_action and (an_action not in list(self.__actions)):
 				raise LookupError("Action '%s' is not yet registered in this configuration" % an_action)
 
-		if is_allowed_or_condition:
-			if type(is_allowed_or_condition) != bool:
+		if is_allowed_or_required_condition:
+			if type(is_allowed_or_required_condition) != bool:
+				# must be a string representing a required condition
 				if self.is_registration_required():
-					if is_allowed_or_condition not in list(self.__conditions):
+					if is_allowed_or_required_condition not in list(self.__conditions):
 						raise LookupError((
 							"Condition '%s' is not yet registered in this configuration"
 							" - must use a boolean or a registered condition."
-						) % (is_allowed_or_condition))
+						) % (is_allowed_or_required_condition))
 
 	###############################################################
 	###############################################################

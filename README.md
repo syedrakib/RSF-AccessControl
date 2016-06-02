@@ -84,10 +84,10 @@ Now, while assigning a privilege to a user or a role, instead of supplying a boo
 
     a_user = "bob"
     an_action = "remove"
-    is_allowed_or_condition = "self_items"
-    pc.assign_privilege_for_a_user(a_user, an_action, is_allowed_or_condition)
+    required_condition = "self_items"
+    pc.assign_privilege_for_a_user(a_user, an_action, required_condition)
 
-Notice that, previously we had been submitting a boolean as the 3rd argument for assigning privileges. Now, we are supplying a string instead. Both are permissible. 
+**Notice that**, previously we had been submitting a `is_allowed` boolean as the 3rd argument for assigning privileges. Now, we are submitting a `required_condition` string as the 3rd argument for assigning privileges. Both are permissible. 
 
 When queried with `is_allowed()`, you will get either a True or a False in response. However, when fine-grain conditions are involved, it is recommended to query using the `is_allowed_or_required_condition()` method instead - it will return either a `True` or a `False` or the supplied condition that was assigned.
 
