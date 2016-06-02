@@ -168,9 +168,22 @@ class PermissionsConfiguration():
 	###############################################################
 
 	def is_allowed(self, invoker_role, invoker_user, requested_action):
-		# may return boolean True/False or a string Condition 
-		# if a speific condition is attached 
-		# to the user/role for the requested action
+		# Recommended for simple use cases where no comlpex conditions are involved
+		# May return either a True or a False
+		is_allowed_or_required_condition = self.is_allowed_or_required_condition(
+			invoker_role, invoker_user, requested_action
+		)
+		if type(is_allowed_or_required_condition) == bool:
+			return is_allowed_or_required_condition
+		else:
+			raise TypeError((
+				"Looks like a condition is involved here. "
+				"Use the 'is_allowed_or_required_condition()' method instead"
+			))
+
+	def is_allowed_or_required_condition(self, invoker_role, invoker_user, requested_action):
+		# Recommended for robust use cases where conditions may be involved
+		# May return boolean True/False, or may return a string representing a condition
 		try:
 			return self.__privileges['for_users'][invoker_user][requested_action]
 		except KeyError:

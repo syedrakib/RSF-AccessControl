@@ -87,14 +87,22 @@ Now, while assigning a privilege to a user or a role, instead of supplying a boo
     is_allowed_or_condition = "self_items"
     pc.assign_privilege_for_a_user(a_user, an_action, is_allowed_or_condition)
 
-Notice that, previously we had been submitting a boolean as the 3rd argument to assigning privileges. Now, we are supplying a string instead. Both are permissible. When queried for `is_allowed()`, it will return either a `True` or a `False` or the supplied condition that was assigned.
+Notice that, previously we had been submitting a boolean as the 3rd argument for assigning privileges. Now, we are supplying a string instead. Both are permissible. 
+
+When queried with `is_allowed()`, you will get either a True or a False in response. However, when fine-grain conditions are involved, it is recommended to query using the `is_allowed_or_required_condition()` method instead - it will return either a `True` or a `False` or the supplied condition that was assigned.
 
     a_role = "intern"
     a_user = "bob"
     an_action = "remove"
-    pc.is_allowed(a_role, a_user, an_action) # 'self_items'
+    pc.is_allowed_or_required_condition(a_role, a_user, an_action) # 'self_items'
 
-Any user or any role can be permitted some actions based on some conditions. If conditions have been set for the role or the user, then the `pc` object will return the condition instead of returning a `True` or a `False`.
+Any user or any role can be permitted some actions based on some conditions as we saw above. If conditions have been set for the role (or for the user), then the `is_allowed_or_required_condition()` method will return the condition instead of returning a `True` or a `False`.
+
+# Which method to use for determining privileges
+
+Using the `is_allowed()` is recommended for simple use cases where no complex conditions are involved. You will get a response in either `True` or `False`.
+
+Using the `is_allowed_or_required_condition()` is recommended for more robust use cases where complex conditions may be involved. It may return boolean `True`/`False`, or may return a string representing a required condition.
 
 # Requiring Registrations
 
@@ -156,7 +164,7 @@ This `pc2` object is now an exact replica of the original `pc` object that we fi
 
 - Any privilege that has been defined explicitly for a specific user, will override whatever role he/she is a part of - role of the user does not matter if an explicit privilege has been assigned to that user for an action
 - A user (or a role) can be completely allowed/disallowed some actions or be allowed on certain conditions only
-- Whenever a combination of role/user/action is used which is particularly unknown to the PermissionsConfiguration object, it will return `False` when queried with `is_allowed()`.
+- Whenever a combination of role/user/action is used which is particularly unknown to the PermissionsConfiguration object, it will return `False` when queried with `is_allowed()` or with `is_allowed_or_required_condition()`.
 - There are no automatic heirarchies enforced in any way (such as manager can do whatever a user can, a user can do whatever an intern can etc). You are expected to set the privileges for every action for every role/user explicitly.
 
 # Important note
