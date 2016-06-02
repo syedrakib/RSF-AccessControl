@@ -47,7 +47,8 @@ It's all arbitrary - you're free to call your roles, users, actions whatever you
     a_role = None # maybe Alice was never even assigned any role in our project
     a_user = "alice"
     an_action = "remove"
-    pc.is_allowed(a_role, a_user, an_action) # True
+    pc.is_allowed(a_role, a_user, an_action) # True, 
+    # returns True because alice has been explicitly assigned a privilege for this action
 
 Let's take Bob for example. He is someone who hasn't been assigned any privileges yet.
 
@@ -63,39 +64,37 @@ Bob as a user cannot remove items. But managers can. So, if Bob is promoted to b
     an_action = "remove"
     pc.is_allowed(a_role, a_user, an_action) # True
     
-Each of these fields (`a_role`, `a_user`, `an_action`) are compulsory for determining a privilege with `is_allowed()`. However, it is completely normal to leave one or more of these fields as `None` if its value is not known particularly. By default, if any role-user-action combination is used which was not previously assigned any privileges, then `False` will be returned
+Each of these fields (`a_role`, `a_user`, `an_action`) are compulsory for determining a privilege with `is_allowed()`. However, it is completely normal to leave one or more of these fields as `None` if its value is not known particularly. 
+
+By default, if any role-user-action combination is used which was not previously assigned any privileges, then `False` will be returned
     
-    a_role = "superuser" # superusers can destroy a universe
-    a_user = "charlie" # charlie is the master maniac
-    an_action = "smash_an_apple" 
-    pc.is_allowed(a_role, a_user, an_action) # False - because these roles/users were never assigned any privilegs on the first place
+    a_role = "supermutant" # supermutants can destroy a universe
+    a_user = "mastermutant" # mastermutant is the master of all super mutants
+    an_action = "squash_an_apple" 
+    pc.is_allowed(a_role, a_user, an_action) # False
+    # returns False because this role/user was never assigned any privileges on the first place
     
 # Fine-grain control with special conditions
 
-So far, Alice can remove any item she wants whether she is user or manager. Bob cannot remove any item. But if he queries his privilege as a Manager then he can remove any item because the Manager role is allowed to remove items. 
+So far, Alice can remove any item she wants whether she is user or manager. Bob, as a user, cannot remove any item. But if Bob queries his privilege as a Manager then he can remove any item because the Manager role is allowed to remove items. 
 
-Now, let's say we want to allow Bob to remove items but only those items which belong to him - not others. We can call this condition `"self_items"`. Again, any arbitrary string is accepted.
+Now, let's say we want to allow Bob to remove items but only those items which belong to him - not others. We can call this a condition called `"self_items"`. 
+
+Now, while assigning a privilege to a user or a role, instead of supplying a boolean True/False, we can also supply a string to represent a condition.
 
     a_user = "bob"
     an_action = "remove"
-    is_allowed = True
-    a_condition = "self_items"
-    pc.assign_privilege_for_a_user(a_user, an_action, is_allowed, a_condition)
+    is_allowed_or_condition = "self_items"
+    pc.assign_privilege_for_a_user(a_user, an_action, is_allowed_or_condition)
 
-Notice that we had not used the `a_condition` field till now for assigning privileges previously - it is an optional field.
-
-Now, let's say Bob is an intern (a role which has not been introduced to the `pc` object yet) and will be allowed to remove contents only if he includes the condition that he is trying to remove his own contents.
+Notice that, previously we had been submitting a boolean as the 3rd argument to assigning privileges. Now, we are supplying a string instead. Both are permissible. When queried for `is_allowed()`, it will return either a `True` or a `False` or the supplied condition that was assigned.
 
     a_role = "intern"
     a_user = "bob"
     an_action = "remove"
-    known_condition = None
-    pc.is_allowed(a_role, a_user, an_action) # False
-    
-    known_condition = "self_items"
-    pc.is_allowed(a_role, a_user, an_action, known_condition) # True
+    pc.is_allowed(a_role, a_user, an_action) # 'self_items'
 
-Any user or any role can be permitted some actions based on some conditions. If conditions have been set but the conditions are not met, then `pc` object will return False.
+Any user or any role can be permitted some actions based on some conditions. If conditions have been set for the role or the user, then the `pc` object will return the condition instead of returning a `True` or a `False`.
 
 # Requiring Registrations
 
@@ -155,15 +154,16 @@ This `pc2` object is now an exact replica of the original `pc` object that we fi
     
 # Summary
 
-- Any privilege that has been defined explicitly for a specific user, will override whatever role he/she is a part of - role of the user does not matter if an explicit privilege has been assigned to that user for the action
-- A user (or a role) can be disallowed some actions while being allowed the same actions upon fulfilling certain known conditions
-- A user (or a role) can also be allowed some actions while being disallowed the same actions under certain known conditions
-- Whenever a combination of role/user/action/condition is used which is particularly unknown to the PermissionsConfiguration object, it will return `False` when queried with `is_allowed()`.
-- There are no automatic heirarchies enforced in any way (such as manager can do whatever a user can, a user can do whatever an intern can etc). You are expected to set the privileges for every action for every role / user explicitly.
+- Any privilege that has been defined explicitly for a specific user, will override whatever role he/she is a part of - role of the user does not matter if an explicit privilege has been assigned to that user for an action
+- A user (or a role) can be completely allowed/disallowed some actions or be allowed on certain conditions only
+- Whenever a combination of role/user/action is used which is particularly unknown to the PermissionsConfiguration object, it will return `False` when queried with `is_allowed()`.
+- There are no automatic heirarchies enforced in any way (such as manager can do whatever a user can, a user can do whatever an intern can etc). You are expected to set the privileges for every action for every role/user explicitly.
 
 # Important note
 
-RSF-Pyrmissions does not keep record of which user has which role, which role has higher privileges than other roles etc. When you use this library in your project, it is expected that your project will keep the important records of which user has which role and who is above whom and what not. Your project will determine which user is trying to perform what action, whether the user is fulfiling a condition or not etc. RSF-Pyrmissions will only let you know if `a_user` with `a_role` trying to perform `an_action` with `a_condition` (or without `a_condition`) is allowed to perform that action or not - simple, no strings attached, ridiculously straight forward.
+RSF-Pyrmissions does not keep record of which user has which role, which role has higher privileges than other roles etc. When you use this simple library in your python project, it is expected that your project will keep the important records of which user has which role and who is above whom and what not. 
+
+Your project will determine which user is trying to perform what action, whether the user is fulfiling a condition or not etc. RSF-Pyrmissions will only let you know if `a_user` with `a_role` trying to perform `an_action` is allowed (or disallowed) to perform that action with (or without) a `condition` - simple, no strings attached, ridiculously straight forward.
     
     
     

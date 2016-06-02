@@ -1,8 +1,4 @@
-import json, pickle
-
-from base64 import b64encode, b64decode
-from copy import copy
-
+import json
 
 class PermissionsConfiguration():
 
@@ -129,29 +125,22 @@ class PermissionsConfiguration():
 	###############################################################
 	###############################################################
 
-	def assign_privilege_for_a_role(self, a_role, an_action, is_allowed, a_condition=None):
+	def assign_privilege_for_a_role(self, a_role, an_action, is_allowed_or_condition):
 		self.__validate_parameters(
-			a_role=a_role, an_action=an_action, is_allowed=is_allowed, a_condition=a_condition
+			a_role=a_role, an_action=an_action, is_allowed_or_condition=is_allowed_or_condition
 		)
 		self.__privileges['for_roles'].setdefault(a_role, dict())
-		self.__privileges['for_roles'][a_role].setdefault(an_action, False)
-		self.__privileges['for_roles'][a_role][an_action] = self.__calibrate_action_privileges(
-			self.__privileges['for_roles'][a_role][an_action], is_allowed, a_condition, 
-		)
+		self.__privileges['for_roles'][a_role][an_action] = is_allowed_or_condition
 
-	def assign_privilege_for_a_user(self, a_user, an_action, is_allowed, a_condition=None):
+	def assign_privilege_for_a_user(self, a_user, an_action, is_allowed_or_condition):
 		self.__validate_parameters(
-			a_user=a_user, an_action=an_action, is_allowed=is_allowed, a_condition=a_condition
+			a_user=a_user, an_action=an_action, is_allowed_or_condition=is_allowed_or_condition
 		)
 		self.__privileges['for_users'].setdefault(a_user, dict())
-		self.__privileges['for_users'][a_user].setdefault(an_action, False)
-		self.__privileges['for_users'][a_user][an_action] = self.__calibrate_action_privileges(
-			self.__privileges['for_users'][a_user][an_action], is_allowed, a_condition, 
-		)
+		self.__privileges['for_users'][a_user][an_action] = is_allowed_or_condition
 
 	def __validate_parameters(self, 
-		a_role=None, a_user=None, an_action=None, 
-		is_allowed=None, a_condition=None
+		a_role=None, a_user=None, an_action=None, is_allowed_or_condition=None
 	):
 		if self.__options['is_registration_required']:
 			if a_role and (a_role not in list(self.__roles)):
@@ -163,24 +152,14 @@ class PermissionsConfiguration():
 			if an_action and (an_action not in list(self.__actions)):
 				raise LookupError("Action '%s' is not yet registered in this configuration" % an_action)
 
-			if a_condition and (a_condition not in list(self.__conditions)):
-				raise LookupError("Condition '%s' is not yet registered in this configuration" % a_condition)
-
-		if is_allowed and (type(is_allowed) != bool):
-			raise TypeError((
-				"Value for is_allowed while assigning a privilege must be a boolean - '%s' detected"
-			) % type(is_allowed))
-
-	def __calibrate_action_privileges(self, action_privileges, is_allowed, a_condition):
-		action_privileges = copy(action_privileges)
-		if a_condition:
-			if type(action_privileges) == dict:
-				action_privileges[a_condition] = is_allowed
-			else:
-				action_privileges = {a_condition: is_allowed}
-		else:
-			action_privileges = is_allowed
-		return action_privileges
+		if is_allowed_or_condition:
+			if type(is_allowed_or_condition) != bool:
+				if self.__options['is_registration_required']:
+					if is_allowed_or_condition not in list(self.__conditions):
+						raise LookupError((
+							"Condition '%s' is not yet registered in this configuration"
+							" - must use a boolean or a registered condition."
+						) % (is_allowed_or_condition))
 
 	###############################################################
 	###############################################################
@@ -188,26 +167,17 @@ class PermissionsConfiguration():
 	###############################################################
 	###############################################################
 
-	def is_allowed(self, invoker_role, invoker_user, requested_action, known_condition=None):
-		user_privileges = self.__privileges['for_users'].get(invoker_user, False)
-		if user_privileges:
-			user_privileges_for_action = user_privileges.get(requested_action, False)
-			if user_privileges_for_action:
-				if type(user_privileges_for_action) == bool:
-					return user_privileges_for_action
-				else:
-					# user_privileges_for_action is a dictionary of conditions
-					return user_privileges_for_action.get(known_condition, False)
-		role_privileges = self.__privileges['for_roles'].get(invoker_role, False)
-		if role_privileges:
-			role_privileges_for_action = role_privileges.get(requested_action, False)
-			if role_privileges_for_action:
-				if type(role_privileges_for_action) == bool:
-					return role_privileges_for_action
-				else:
-					# role_privileges_for_action is a dictionary of conditions
-					return role_privileges_for_action.get(known_condition, False)
-		return False
+	def is_allowed(self, invoker_role, invoker_user, requested_action):
+		# may return boolean True/False or a string Condition 
+		# if a speific condition is attached 
+		# to the user/role for the requested action
+		try:
+			return self.__privileges['for_users'][invoker_user][requested_action]
+		except KeyError:
+			try:
+				return self.__privileges['for_roles'][invoker_role][requested_action]
+			except KeyError:
+				return False
 
 
 
