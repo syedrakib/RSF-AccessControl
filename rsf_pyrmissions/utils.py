@@ -42,7 +42,9 @@ class PermissionsConfiguration():
 		try:
 			dump_dict = json.loads(dump_string)
 		except ValueError as error:
-			error.args = ("Invalid JSON format of dump_string",)
+			error.args = ((
+				"Invalid JSON format while loading PermissionsConfiguration from a dump_string"
+			),)
 			raise
 		else:
 			# keep a backup of current state before starting to mangle the current state with __load()
