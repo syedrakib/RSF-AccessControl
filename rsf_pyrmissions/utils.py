@@ -10,7 +10,7 @@ class PermissionsConfiguration():
 				" - '%s' (%s) detected"
 			) % (is_registration_required, type(is_registration_required)))
 		else:
-			self.__registered_items = dict(
+			self.__registered_parameters = dict(
 				roles=set(),
 				users=set(),
 				actions=set(),
@@ -32,11 +32,11 @@ class PermissionsConfiguration():
 
 	def dumps(self):
 		return json.dumps(dict(
-			registered_items=dict(
-				roles=list(self.__registered_items['roles']),
-				users=list(self.__registered_items['users']),
-				actions=list(self.__registered_items['actions']),
-				conditions=list(self.__registered_items['conditions']),
+			registered_parameters=dict(
+				roles=list(self.__registered_parameters['roles']),
+				users=list(self.__registered_parameters['users']),
+				actions=list(self.__registered_parameters['actions']),
+				conditions=list(self.__registered_parameters['conditions']),
 			),
 			privileges=self.__privileges,
 			options=self.__options,
@@ -60,16 +60,16 @@ class PermissionsConfiguration():
 				raise
 
 	def __load(self, dump_dict):
-		self.__registered_items['roles'] = set(dump_dict['registered_items'].pop("roles"))
-		self.__registered_items['users'] = set(dump_dict['registered_items'].pop("users"))
-		self.__registered_items['actions'] = set(dump_dict['registered_items'].pop("actions"))
-		self.__registered_items['conditions'] = set(dump_dict['registered_items'].pop("conditions"))
-		if len(dump_dict['registered_items']) > 0:
+		self.__registered_parameters['roles'] = set(dump_dict['registered_parameters'].pop("roles"))
+		self.__registered_parameters['users'] = set(dump_dict['registered_parameters'].pop("users"))
+		self.__registered_parameters['actions'] = set(dump_dict['registered_parameters'].pop("actions"))
+		self.__registered_parameters['conditions'] = set(dump_dict['registered_parameters'].pop("conditions"))
+		if len(dump_dict['registered_parameters']) > 0:
 			raise KeyError((
 				"Unknown keys %s found to be registered inside dump dictionary"
-			) % dump_dict['registered_items'].keys())
+			) % dump_dict['registered_parameters'].keys())
 		else:
-			dump_dict.pop("registered_items")
+			dump_dict.pop("registered_parameters")
 			self.__privileges = dump_dict.pop("privileges")
 			self.__options = dump_dict.pop("options")
 			if len(dump_dict) > 0:
@@ -102,7 +102,7 @@ class PermissionsConfiguration():
 					"%dth role (%s) for registering roles must be a string - '%s' detected"
 				) % (index, a_role, type(a_role)))
 			else:
-				self.__registered_items['roles'].add(a_role)
+				self.__registered_parameters['roles'].add(a_role)
 
 	def register_users(self, *args):
 		for index, a_user in enumerate(args):
@@ -111,7 +111,7 @@ class PermissionsConfiguration():
 					"%dth user (%s) for registering users must be a string - '%s' detected"
 				) % (index, a_user, type(a_user)))
 			else:
-				self.__registered_items['users'].add(a_user)
+				self.__registered_parameters['users'].add(a_user)
 
 	def register_actions(self, *args):
 		for index, an_action in enumerate(args):
@@ -120,7 +120,7 @@ class PermissionsConfiguration():
 					"%dth action (%s) for registering actions must be a string - '%s' detected"
 				) % (index, an_action, type(an_action)))
 			else:
-				self.__registered_items['actions'].add(an_action)
+				self.__registered_parameters['actions'].add(an_action)
 
 	def register_conditions(self, *args):
 		for index, a_condition in enumerate(args):
@@ -129,7 +129,7 @@ class PermissionsConfiguration():
 					"%dth condition (%s) for registering conditions must be a string - '%s' detected"
 				) % (index, a_condition, type(a_condition)))
 			else:
-				self.__registered_items['conditions'].add(a_condition)
+				self.__registered_parameters['conditions'].add(a_condition)
 
 	###############################################################
 	###############################################################
@@ -157,20 +157,20 @@ class PermissionsConfiguration():
 		a_role=None, a_user=None, an_action=None, is_allowed_or_required_condition=None
 	):
 		if self.is_registration_required():
-			if a_role and (a_role not in list(self.__registered_items['roles'])):
+			if a_role and (a_role not in list(self.__registered_parameters['roles'])):
 				raise LookupError("Role '%s' is not yet registered in this configuration" % a_role)
 
-			if a_user and (a_user not in list(self.__registered_items['users'])):
+			if a_user and (a_user not in list(self.__registered_parameters['users'])):
 				raise LookupError("User '%s' is not yet registered in this configuration" % a_user)
 
-			if an_action and (an_action not in list(self.__registered_items['actions'])):
+			if an_action and (an_action not in list(self.__registered_parameters['actions'])):
 				raise LookupError("Action '%s' is not yet registered in this configuration" % an_action)
 
 		if is_allowed_or_required_condition:
 			if type(is_allowed_or_required_condition) != bool:
 				# must be a string representing a required condition
 				if self.is_registration_required():
-					if is_allowed_or_required_condition not in list(self.__registered_items['conditions']):
+					if is_allowed_or_required_condition not in list(self.__registered_parameters['conditions']):
 						raise LookupError((
 							"Condition '%s' is not yet registered in this configuration"
 							" - must use a boolean or a registered condition."
