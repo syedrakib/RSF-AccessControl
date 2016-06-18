@@ -153,7 +153,31 @@ class PermissionsConfiguration():
 		self.__privileges['for_users'].setdefault(a_user, dict())
 		self.__privileges['for_users'][a_user][an_action] = is_allowed_or_required_condition
 
+	def unassign_privilege_for_a_role(self, a_role, an_action):
+		try:
+			self.__privileges['for_roles'][a_role].pop(an_action)
+		except KeyError as error:
+			error.args = ((
+				"Cannot un-assign privilege for role"
+				" - no action '%s' currently assigned for role '%s'"
+			) % (an_action, a_role), )
+			raise
+		else:
+			if len(self.__privileges['for_roles'][a_role]) == 0:
+				self.__privileges['for_roles'].pop(a_role)
 
+	def unassign_privilege_for_a_user(self, a_user, an_action):
+		try:
+			self.__privileges['for_users'][a_user].pop(an_action)
+		except KeyError as error:
+			error.args = ((
+				"Cannot un-assign privilege for user"
+				" - no action '%s' currently assigned for user '%s'"
+			) % (an_action, a_user), )
+			raise
+		else:
+			if len(self.__privileges['for_users'][a_user]) == 0:
+				self.__privileges['for_users'].pop(a_user)
 
 	def __validate_parameters(self,
 		is_allowed_or_required_condition, a_role=None, a_user=None, an_action=None
