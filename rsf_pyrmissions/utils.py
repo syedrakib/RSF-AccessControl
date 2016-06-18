@@ -184,7 +184,7 @@ class PermissionsConfiguration():
 	):
 		if type(is_allowed_or_required_condition) != bool:
 			# must be a string representing a required condition
-			if type(is_allowed_or_required_condition) != str:
+			if not isinstance(is_allowed_or_required_condition, basestring):
 				raise TypeError((
 					"is_allowed_or_required_condition must be either a boolean or a string"
 					" - '%s' (%s) detected"
