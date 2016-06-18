@@ -13,6 +13,8 @@ Ridiculously Straight Forward Permissioning system (aka Access Control) for pyth
 
 In a production system, we should pass in a boolean `True` for the `is_registration_required` argument in this object instantiation statement. However, for this demo purpose, we will set it to `False` and, hence, avoid any requirements for registrations - we will discuss the importance of registrations a little later below.
 
+---
+
 # Setting privileges for roles and users
 
 We will use random roles and users to assign privileges to them. Note that, there is nothing significant about what / how you call each role / user. It doesn't matter whether a role is called "superuser" or an "intern". The only thing that matters is which arbitrary string denoting a role has been assigned what kind of privileges for an arbitrary string of action. 
@@ -73,12 +75,47 @@ By default, if any role-user-action combination is used which was not previously
     an_action = "squash_an_apple" 
     pc.is_allowed(a_role, a_user, an_action) # False
     # returns False because this role/user was never assigned any privileges on the first place
+
+# Removing assigned privileges from roles and users
+
+As noted above, let's say managers are currently allowed to remove items.
     
+    a_role = "manager"
+    a_user = "bob"
+    an_action = "remove"
+    pc.is_allowed(a_role, a_user, an_action) # True
+
+To unassign this privilege from the role of managers, we can do the following:
+
+    pc.unassign_privilege_for_a_role(a_role, an_action)
+
+Now, if we query `is_allowed` for this action by the same role and same user, we will get `False`.
+
+    pc.is_allowed(a_role, a_user, an_action) # False
+
+Similary, we can also unassign a privilege from a particular user. As noted above, let's say Alice is currently allowed to remove items regardless of her role.
+    
+    a_role = None # maybe Alice was never even assigned any role in our project
+    a_user = "alice"
+    an_action = "remove"
+    pc.is_allowed(a_role, a_user, an_action) # True
+
+Now, if we unassign this special privilege from Alice and then query for `is_allowed` with the same role and the same user once again, we will get `False` in return.
+
+    pc.unassign_privilege_for_a_user(a_user, an_action)
+    pc.is_allowed(a_role, a_user, an_action) # False
+
+Thus, we can **assign** privileges to roles and users. And also **unassign** privileges from roles and users.
+
+---
+
 # Fine-grain control with special conditions
 
-So far, Alice can remove any item she wants whether she is user or manager. Bob, as a user, cannot remove any item. But if Bob queries his privilege as a Manager then he can remove any item because the Manager role is allowed to remove items. 
+So far, Alice was able to remove any item she wanted regardless of whether she was a user or a manager. However, we've just unassigned that privilege from Alice in our last example - sorry Alice.
 
-Now, let's say we want to allow Bob to remove items but only those items which belong to him - not others. We can call this a condition called `"self_items"`. 
+Now, Bob, as a user, cannot remove any item. But if Bob queries his privilege as a Manager then he can remove any item because the Manager role is allowed to remove items. 
+
+Let's say we want to allow Bob to remove items (whether he is a manager or a user) but only those items which belong to him - not others items. We can call this a condition called `"self_items"`. 
 
 Now, while assigning a privilege to a user or a role, instead of supplying a boolean True/False, we can also supply a string to represent a condition.
 
@@ -103,6 +140,8 @@ Any user or any role can be permitted some actions based on some conditions as w
 Using the `is_allowed()` is recommended for simple use cases where no complex conditions are involved. You will get a response in either `True` or `False`.
 
 Using the `is_allowed_or_required_condition()` is recommended for more robust use cases where complex conditions may be involved. It may return boolean `True`/`False`, or may return a string representing a required condition.
+
+---
 
 # Requiring Registrations
 
@@ -143,6 +182,8 @@ Hence, later on if you try to assign a privilege with a mistyped parameter (or w
 
 This helps in various cases where accounting / planning for newly introduced roles, users, actions (before using them) is important. **It is recommended to enforce this requirement in production applications.**
 
+---
+
 # Dumping & Loading (export/import)
 
 **Dumping**
@@ -159,9 +200,12 @@ This string represents the current state of the `pc` object and it can be easily
 This `pc2` object is now an exact replica of the original `pc` object that we first created. We can resume all assigning and querying operations on this new `pc2` object just like we were doing for the original `pc` object.
 
 ***CAUTION with Loading!!!*** The `loads()` method will completely replace whatever config state was present in the config object before the `loads()` method was called. So use this method with caution.
-    
+
+---
+
 # Summary
 
+- Privileges can be assigned (and also be unassigned) to/from both users and roles
 - Any privilege that has been defined explicitly for a specific user, will override whatever role he/she is a part of - role of the user does not matter if an explicit privilege has been assigned to that user for an action
 - A user (or a role) can be completely allowed/disallowed some actions or be allowed on certain conditions only
 - Whenever a combination of role/user/action is used which is particularly unknown to the PermissionsConfiguration object, it will return `False` when queried with `is_allowed()` or with `is_allowed_or_required_condition()`.
