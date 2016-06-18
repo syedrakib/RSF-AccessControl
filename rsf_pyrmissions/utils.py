@@ -153,9 +153,26 @@ class PermissionsConfiguration():
 		self.__privileges['for_users'].setdefault(a_user, dict())
 		self.__privileges['for_users'][a_user][an_action] = is_allowed_or_required_condition
 
-	def __validate_parameters(self, 
-		a_role=None, a_user=None, an_action=None, is_allowed_or_required_condition=None
+
+
+	def __validate_parameters(self,
+		is_allowed_or_required_condition, a_role=None, a_user=None, an_action=None
 	):
+		if type(is_allowed_or_required_condition) != bool:
+			# must be a string representing a required condition
+			if type(is_allowed_or_required_condition) != str:
+				raise TypeError((
+					"is_allowed_or_required_condition must be either a boolean or a string"
+					" - '%s' (%s) detected"
+				) % (is_allowed_or_required_condition, type(is_allowed_or_required_condition)))
+			else:
+				if self.is_registration_required():
+					if is_allowed_or_required_condition not in list(self.__registered_parameters['conditions']):
+						raise LookupError((
+							"Condition '%s' is not yet registered in this configuration"
+							" - must use a boolean or a registered string condition."
+						) % (is_allowed_or_required_condition))
+
 		if self.is_registration_required():
 			if a_role and (a_role not in list(self.__registered_parameters['roles'])):
 				raise LookupError("Role '%s' is not yet registered in this configuration" % a_role)
@@ -165,16 +182,6 @@ class PermissionsConfiguration():
 
 			if an_action and (an_action not in list(self.__registered_parameters['actions'])):
 				raise LookupError("Action '%s' is not yet registered in this configuration" % an_action)
-
-		if is_allowed_or_required_condition:
-			if type(is_allowed_or_required_condition) != bool:
-				# must be a string representing a required condition
-				if self.is_registration_required():
-					if is_allowed_or_required_condition not in list(self.__registered_parameters['conditions']):
-						raise LookupError((
-							"Condition '%s' is not yet registered in this configuration"
-							" - must use a boolean or a registered condition."
-						) % (is_allowed_or_required_condition))
 
 	###############################################################
 	###############################################################
