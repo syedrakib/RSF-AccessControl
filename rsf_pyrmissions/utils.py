@@ -156,12 +156,11 @@ class PermissionsConfiguration():
 	def unassign_privilege_for_a_role(self, a_role, an_action):
 		try:
 			self.__privileges['for_roles'][a_role].pop(an_action)
-		except KeyError as error:
-			error.args = ((
-				"Cannot un-assign privilege for role"
-				" - no action '%s' currently assigned for role '%s'"
-			) % (an_action, a_role), )
-			raise
+		except KeyError:
+			raise LookupError((
+				"Cannot unassign privilege"
+				" - no action '%s' currently configured for role '%s'"
+			) % (an_action, a_role))
 		else:
 			if len(self.__privileges['for_roles'][a_role]) == 0:
 				self.__privileges['for_roles'].pop(a_role)
@@ -169,12 +168,11 @@ class PermissionsConfiguration():
 	def unassign_privilege_for_a_user(self, a_user, an_action):
 		try:
 			self.__privileges['for_users'][a_user].pop(an_action)
-		except KeyError as error:
-			error.args = ((
-				"Cannot un-assign privilege for user"
-				" - no action '%s' currently assigned for user '%s'"
-			) % (an_action, a_user), )
-			raise
+		except KeyError:
+			raise LookupError((
+				"Cannot unassign privilege"
+				" - no action '%s' currently configured for user '%s'"
+			) % (an_action, a_user))
 		else:
 			if len(self.__privileges['for_users'][a_user]) == 0:
 				self.__privileges['for_users'].pop(a_user)

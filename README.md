@@ -107,6 +107,9 @@ Now, if we unassign this special privilege from Alice and then query for `is_all
 
 Thus, we can **assign** privileges to roles and users. And also **unassign** privileges from roles and users.
 
+***Caution with unassign!!!*** The `unassign_privilege` methods will throw a `LookupError` if the mentioned combination of action with a user/role does not exist in the permissions configuration during the time of callling the `unassign_privilege` methods. The error needs to be caught and handled/dismissed as reasonable.
+
+
 ---
 
 # Fine-grain control with special conditions
